@@ -1,6 +1,33 @@
-env:
-  APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+name: CI Security Lab
 
-steps:
-  - name: Use Secret
-    run: echo "Using secret safely"
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run App
+        run: node app.js
+
+      - name: Use Secret
+        run: echo "Using secret safely"
+
+      # 🔐 Secret Scan
+      - name: Secret Scan
+        run: |
+          if grep -Ri "password" . \
+            --exclude-dir=.github \
+            --exclude-dir=node_modules; then
+            echo "❌ Found secret"
+            exit 1
+          else
+            echo "✅ No secret found"
+          fi
