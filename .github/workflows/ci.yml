@@ -17,50 +17,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 🔐 1. Secret Scan (Gitleaks)
+      # 🔐 1. Secret Scan (จริง)
       - name: Secret Scan (Gitleaks)
         uses: gitleaks/gitleaks-action@v2
 
-      # 🔹 Setup Node (สำคัญมาก ไม่งั้น node อาจพัง)
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      # 🔐 2. Dependency Scan
+      # 🔐 2. Dependency Scan (Node.js)
       - name: Install dependencies
         run: |
           if [ -f package.json ]; then
             npm install
-          else
-            echo "No package.json found"
           fi
 
       - name: Run npm audit
         run: |
           if [ -f package.json ]; then
-            npm audit --audit-level=high || exit 1
-          else
-            echo "Skip audit"
+            npm audit --audit-level=high
           fi
 
-      # 🔐 3. SAST (ปรับให้แม่นขึ้น)
+      # 🔐 3. SAST (เบื้องต้น)
       - name: Simple Code Scan
         run: |
-          if grep -Ri "eval(" . \
-            --exclude-dir=.github \
-            --exclude-dir=node_modules; then
+          if grep -Ri "eval(" .; then
             echo "❌ Dangerous code detected"
             exit 1
-          else
-            echo "✅ Code looks safe"
           fi
 
-      # 🔹 Run app (กัน fail ถ้าไม่มีไฟล์)
+      # 🔹 Run app
       - name: Run App
-        run: |
-          if [ -f app.js ]; then
-            node app.js
-          else
-            echo "No app.js found"
-          fi
+        run: node app.js
