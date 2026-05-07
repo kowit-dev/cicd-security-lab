@@ -1,1 +1,1 @@
-console.log("passwor12");
+const apiKey = "sk-123456";
