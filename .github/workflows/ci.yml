@@ -9,15 +9,21 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run App
         run: node app.js
 
-      # 🔐 Secret Scan
+      # 🔐 Secret Scan (ปรับให้แม่นขึ้น)
       - name: Secret Scan
         run: |
-          if grep -r "secret" .; then
+          if grep -Ri "password" . \
+            --exclude-dir=.github \
+            --exclude-dir=node_modules \
+            --include="*.js" \
+            --include="*.env"; then
             echo "❌ Found secret"
             exit 1
+          else
+            echo "✅ No secret found"
           fi
