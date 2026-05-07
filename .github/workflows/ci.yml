@@ -17,7 +17,7 @@ jobs:
       # 🔐 Secret Scan
       - name: Secret Scan
         run: |
-          if grep -r "password" .; then
+          if grep -r "secret" .; then
             echo "❌ Found secret"
             exit 1
           fi
