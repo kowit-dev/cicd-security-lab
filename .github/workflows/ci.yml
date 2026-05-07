@@ -1,33 +1,47 @@
-name: CI Security Lab
+name: DevSecOps Level 2
 
 on:
   push:
+    branches: [ "main" ]
+  pull_request:
 
 jobs:
-  test:
+  security:
     runs-on: ubuntu-latest
 
-    env:
-      APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+    permissions:
+      contents: read
 
     steps:
-      - name: Checkout
+      # 🔹 Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
+      # 🔐 1. Secret Scan (จริง)
+      - name: Secret Scan (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+
+      # 🔐 2. Dependency Scan (Node.js)
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm install
+          fi
+
+      - name: Run npm audit
+        run: |
+          if [ -f package.json ]; then
+            npm audit --audit-level=high
+          fi
+
+      # 🔐 3. SAST (เบื้องต้น)
+      - name: Simple Code Scan
+        run: |
+          if grep -Ri "eval(" .; then
+            echo "❌ Dangerous code detected"
+            exit 1
+          fi
+
+      # 🔹 Run app
       - name: Run App
         run: node app.js
-
-      - name: Use Secret
-        run: echo "Using secret safely"
-
-      # 🔐 Secret Scan
-      - name: Secret Scan
-        run: |
-          if grep -Ri "password" . \
-            --exclude-dir=.github \
-            --exclude-dir=node_modules; then
-            echo "❌ Found secret"
-            exit 1
-          else
-            echo "✅ No secret found"
-          fi
